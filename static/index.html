@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion-Based Music Recommender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        #video-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        video, canvas {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #recommendation {
+            margin-top: 30px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Emotion-Based Music Recommender</h1>
+    <div id="video-container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="snapshot" style="display: none;"></canvas>
+        <button id="getEmotion">Detect Emotion & Recommend Music</button>
+    </div>
+    <div id="recommendation"></div>
+
+    <script>
+        const webcam = document.getElementById("webcam");
+        const canvas = document.getElementById("snapshot");
+        const getEmotionBtn = document.getElementById("getEmotion");
+        const recommendationDiv = document.getElementById("recommendation");
+
+        // Start webcam
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcam.srcObject = stream;
+            } catch (error) {
+                alert("Unable to access webcam. Please allow webcam access and refresh the page.");
+                console.error("Webcam error:", error);
+            }
+        }
+
+        // Capture frame from webcam
+        function captureFrame() {
+            const context = canvas.getContext("2d");
+            canvas.width = webcam.videoWidth;
+            canvas.height = webcam.videoHeight;
+            context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL("image/jpeg"); // Base64 encoded image
+        }
+
+        // Send image to backend and get emotion
+        async function detectEmotion(imageData) {
+            try {
+                const response = await fetch('http://localhost:8000/detect_emotion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_data: imageData })
+                });
+                const data = await response.json();
+                return data.emotion;
+            } catch (error) {
+                console.error("Error detecting emotion:", error);
+                return null;
+            }
+        }
+
+        // Get song recommendation from backend
+        async function getSongRecommendation(emotion) {
+            try {
+                const response = await fetch(`http://localhost:8000/recommend_song?emotion=${emotion}`);
+                const data = await response.json();
+                return data.song;
+            } catch (error) {
+                console.error("Error getting song recommendation:", error);
+                return "No recommendation available.";
+            }
+        }
+
+        // Button click handler
+        getEmotionBtn.addEventListener('click', async () => {
+            recommendationDiv.innerHTML = "<p>⏳ Detecting emotion...</p>";
+            const imageData = captureFrame();
+            const emotion = await detectEmotion(imageData);
+            if (emotion) {
+                const songURL = await getSongRecommendation(emotion);
+                recommendationDiv.innerHTML = `
+                    <h3>Detected Emotion: ${emotion}</h3>
+                    <iframe width="560" height="315" src="${songURL}" 
+                        title="YouTube video player" frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen></iframe>`;
+            } else {
+                recommendationDiv.innerHTML = `<p>😢 Unable to detect emotion. Please try again!</p>`;
+            }
+        });
+
+        // Start webcam on load
+        window.onload = startWebcam;
+    </script>
+</body>
+</html>
