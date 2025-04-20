@@ -84,11 +84,12 @@
         // Send image to backend and get emotion
         async function detectEmotion(imageData) {
             try {
-                const response = await fetch('http://localhost:8000/detect_emotion', {
+                const response = await fetch('/detect_emotion', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image_data: imageData })
                 });
+                if (!response.ok) throw new Error("Server error");
                 const data = await response.json();
                 return data.emotion;
             } catch (error) {
@@ -100,12 +101,13 @@
         // Get song recommendation from backend
         async function getSongRecommendation(emotion) {
             try {
-                const response = await fetch(`http://localhost:8000/recommend_song?emotion=${emotion}`);
+                const response = await fetch(`/recommend_song?emotion=${emotion}`);
+                if (!response.ok) throw new Error("Server error");
                 const data = await response.json();
                 return data.song;
             } catch (error) {
                 console.error("Error getting song recommendation:", error);
-                return "No recommendation available.";
+                return "https://www.youtube.com";
             }
         }
 
@@ -114,7 +116,7 @@
             recommendationDiv.innerHTML = "<p>⏳ Detecting emotion...</p>";
             const imageData = captureFrame();
             const emotion = await detectEmotion(imageData);
-            if (emotion) {
+            if (emotion && emotion !== "unknown") {
                 const songURL = await getSongRecommendation(emotion);
                 recommendationDiv.innerHTML = `
                     <h3>Detected Emotion: ${emotion}</h3>
@@ -123,7 +125,7 @@
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen></iframe>`;
             } else {
-                recommendationDiv.innerHTML = `<p>😢 Unable to detect emotion. Please try again!</p>`;
+                recommendationDiv.innerHTML = `<p>😢 Unable to detect emotion. Please ensure your face is visible and try again!</p>`;
             }
         });
 
