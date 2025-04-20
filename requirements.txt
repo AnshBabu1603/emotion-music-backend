@@ -6,3 +6,4 @@ keras
 python-multipart
 pillow
 opencv-python
+mediapipe
