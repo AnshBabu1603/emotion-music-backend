@@ -7,3 +7,4 @@ python-multipart
 pillow
 opencv-python
 mediapipe
+youtube-search-python
