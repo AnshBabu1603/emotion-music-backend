@@ -31,8 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static frontend
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Serve static frontend from /static path to avoid route conflicts
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 # Data model
 class ImageData(BaseModel):
