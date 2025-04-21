@@ -8,3 +8,4 @@ pillow
 opencv-python
 mediapipe
 youtube-search
+streamlit-webrtc
