@@ -9,4 +9,4 @@ opencv-python
 mediapipe==0.10.21  # or the latest compatible version
 youtube-search
 streamlit-webrtc
-protobuf==3.20.1  # Downgrade protobuf to 3.20.x
+protobuf>=3.20.3,<4.21.0  # Adjusted protobuf version to be compatible with TensorFlow
