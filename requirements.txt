@@ -6,7 +6,7 @@ keras
 python-multipart
 pillow
 opencv-python
-mediapipe==0.10.21  # or the latest compatible version
+mediapipe==0.8.9  # Downgraded version to avoid protobuf conflict
 youtube-search
 streamlit-webrtc
-protobuf>=3.20.3,<4.21.0  # Adjusted protobuf version to be compatible with TensorFlow
+protobuf==3.20.3  # Compatible protobuf version for tensorflow 2.16.1
